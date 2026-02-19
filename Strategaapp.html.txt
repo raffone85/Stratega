@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Value Analyzer Pro</title>
+<!-- PWA MANIFEST & META -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --surface2: #f0f1f7;
+  --border: #e2e4ee;
+  --border2: #d0d3e8;
+  --text: #111827;
+  --text2: #374151;
+  --muted: #6b7280;
+  --muted2: #9ca3af;
+  --green: #00c853;
+  --green-bg: #e8f9ee;
+  --green-border: #a7f3c4;
+  --red: #e53935;
+  --red-bg: #fdecea;
+  --red-border: #fca5a5;
+  --blue: #0ea5e9;
+  --blue-bg: #e0f4ff;
+  --blue-border: #7dd3fc;
+  --gold: #f59e0b;
+  --gold-bg: #fffbeb;
+  --gold-border: #fcd34d;
+  --purple: #7c3aed;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; line-height:1.5; }
+a { color:inherit; text-decoration:none; }
+
+/* LAYOUT */
+.app { max-width:1100px; margin:0 auto; padding:16px; }
+
+/* HEADER */
+.header { display:flex; align-items:center; gap:14px; padding:16px 0 18px; border-bottom:2px solid var(--border); margin-bottom:18px; }
+.header-logo { width:42px; height:42px; background:linear-gradient(135deg,var(--green),var(--blue)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; box-shadow:0 2px 8px rgba(0,200,83,.3); }
+.header-title { font-size:clamp(18px,4vw,26px); font-weight:700; letter-spacing:-.02em; }
+.header-title span { color:var(--green); }
+.header-sub { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:.15em; margin-top:2px; }
+.back-btn { margin-left:auto; padding:7px 14px; border:1px solid var(--border2); background:var(--surface); border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; color:var(--muted); display:none; transition:all .2s; }
+.back-btn:hover { border-color:var(--blue); color:var(--blue); }
+.back-btn.visible { display:flex; align-items:center; gap:5px; }
+
+/* CARDS */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:14px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.card-accent { position:absolute; top:0; left:0; right:0; height:3px; }
+.card-title { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+
+/* PANELS */
+.panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:14px; box-shadow:var(--shadow); }
+.panel-header { display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none; }
+.panel-toggle { font-size:11px; color:var(--muted); margin-left:auto; font-family:'DM Mono',monospace; }
+
+/* BUTTONS */
+.btn { padding:9px 18px; border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all .15s; }
+.btn-primary { background:var(--green); color:#fff; box-shadow:0 2px 8px rgba(0,200,83,.3); }
+.btn-primary:hover { background:#00b347; }
+.btn-blue { background:var(--blue); color:#fff; box-shadow:0 2px 8px rgba(14,165,233,.3); }
+.btn-blue:hover { background:#0284c7; }
+.btn-ghost { background:transparent; border:1px solid var(--border2); color:var(--text2); }
+.btn-ghost:hover { border-color:var(--blue); color:var(--blue); }
+.btn-danger { background:transparent; border:1px solid var(--red-border); color:var(--red); }
+.btn-danger:hover { background:var(--red-bg); }
+.btn-sm { padding:4px 10px; font-size:11px; border-radius:6px; }
+.btn-reset { width:26px; height:26px; border-radius:50%; border:1px solid var(--border2); background:var(--surface2); color:var(--muted); cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .15s; }
+.btn-reset:hover { border-color:var(--red); color:var(--red); }
+
+/* BIG ANALYZE BTN */
+.analyze-btn { width:100%; padding:16px; background:linear-gradient(135deg,var(--green),#00b347); border:none; border-radius:var(--radius); font-family:'DM Sans',sans-serif; font-weight:700; font-size:16px; letter-spacing:.05em; color:#fff; cursor:pointer; margin-bottom:20px; box-shadow:0 4px 16px rgba(0,200,83,.3); transition:all .2s; text-transform:uppercase; }
+.analyze-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,200,83,.4); }
+
+/* FIELDS */
+.field-label { display:block; font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-bottom:5px; }
+.field-wrap { position:relative; }
+.field-reset { position:absolute; top:8px; right:8px; }
+input[type=text], input[type=number], select, textarea {
+  width:100%; background:var(--surface); border:1px solid var(--border); color:var(--text);
+  padding:9px 12px; border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:13px;
+  transition:border-color .15s; outline:none;
+}
+input:focus, select:focus, textarea:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(14,165,233,.1); }
+textarea { resize:vertical; line-height:1.6; }
+.input-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-bottom:14px; }
+.input-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+
+/* BADGES */
+.badge { display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:20px; font-size:11px; font-family:'DM Mono',monospace; font-weight:500; }
+.badge-over { background:var(--green-bg); border:1px solid var(--green-border); color:#0a7a33; }
+.badge-under { background:var(--red-bg); border:1px solid var(--red-border); color:#b91c1c; }
+.badge-1 { background:var(--gold-bg); border:1px solid var(--gold-border); color:#92400e; }
+.badge-x { background:#f3e8ff; border:1px solid #d8b4fe; color:#5b21b6; }
+.badge-2 { background:var(--blue-bg); border:1px solid var(--blue-border); color:#0369a1; }
+.badge-gg { background:var(--green-bg); border:1px solid var(--green-border); color:#0a7a33; }
+.rel-alta { background:#dcfce7; border:1px solid #86efac; color:#15803d; }
+.rel-buona { background:var(--gold-bg); border:1px solid var(--gold-border); color:#92400e; }
+.rel-media { background:#fff7ed; border:1px solid #fdba74; color:#c2410c; }
+.rel-bassa { background:var(--red-bg); border:1px solid var(--red-border); color:#b91c1c; }
+
+/* TABS */
+.tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+.tab { padding:7px 14px; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-size:12px; font-weight:500; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.tab:hover { border-color:var(--blue); color:var(--blue); }
+.tab.active { background:var(--text); border-color:var(--text); color:#fff; }
+
+/* 1X2 CARDS */
+.outcome-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px; }
+.outcome-card { background:var(--surface); border:2px solid var(--border); border-radius:var(--radius); padding:14px; text-align:center; transition:all .2s; }
+.outcome-card.home { border-top-color:var(--gold); }
+.outcome-card.draw { border-top-color:var(--purple); }
+.outcome-card.away { border-top-color:var(--blue); }
+.outcome-label { font-size:10px; font-weight:600; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; margin-bottom:6px; }
+.outcome-prob { font-size:28px; font-weight:700; margin-bottom:2px; }
+.outcome-fair { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+.outcome-bm { font-family:'DM Mono',monospace; font-size:12px; color:var(--gold); font-weight:500; margin-top:3px; }
+.outcome-ev { font-size:12px; font-weight:700; margin-top:4px; }
+.ev-pos { color:var(--green); }
+.ev-neg { color:var(--red); }
+
+/* LINE ROWS */
+.line-row { border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin-bottom:8px; background:var(--surface); }
+.line-row-header { font-size:13px; font-weight:600; margin-bottom:10px; color:var(--text); }
+.line-sides { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.line-side { padding:10px 12px; border-radius:var(--radius-sm); }
+.side-over { background:var(--green-bg); border:1px solid var(--green-border); }
+.side-under { background:var(--red-bg); border:1px solid var(--red-border); }
+.side-label { font-size:9px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; margin-bottom:4px; }
+.side-label-over { color:#0a7a33; }
+.side-label-under { color:#b91c1c; }
+.side-prob { font-size:20px; font-weight:700; }
+.side-prob-over { color:#0a7a33; }
+.side-prob-under { color:#b91c1c; }
+.side-meta { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:2px; }
+.side-ev { font-size:12px; font-weight:700; margin-top:3px; }
+
+/* POISSON TABLE */
+.ptable { width:100%; border-collapse:collapse; }
+.ptable th { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.15em; color:var(--muted); text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border); text-align:left; background:var(--surface2); }
+.ptable td { padding:8px; border-bottom:1px solid var(--border); font-size:13px; }
+.ptable tr:hover td { background:var(--surface2); }
+.pbar-wrap { width:80px; height:6px; background:var(--border); border-radius:4px; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:6px; }
+.pbar-fill-over { height:100%; background:var(--green); border-radius:4px; }
+.pbar-fill-under { height:100%; background:var(--red); border-radius:4px; }
+
+/* BLEND BOX */
+.blend-box { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px; margin-top:12px; }
+.blend-bar { height:6px; background:var(--border); border-radius:4px; overflow:hidden; display:flex; margin-top:4px; }
+
+/* MATRIX */
+.matrix-wrap { overflow-x:auto; }
+.matrix table { border-collapse:collapse; margin:0 auto; }
+.matrix th { background:var(--surface2); color:var(--green); font-family:'DM Mono',monospace; font-size:11px; border:1px solid var(--border); padding:4px 8px; text-align:center; }
+.matrix td { border:1px solid var(--border); text-align:center; padding:4px 3px; font-family:'DM Mono',monospace; font-size:11px; }
+
+/* ARCHIVE */
+.archive-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; flex:1 1 200px; position:relative; transition:border-color .15s; }
+.archive-card:hover { border-color:var(--blue); }
+.archive-card.active { border-color:var(--green); background:var(--green-bg); }
+.archive-badge-active { position:absolute; top:8px; right:8px; background:var(--green); color:#fff; font-size:9px; padding:2px 7px; border-radius:10px; font-family:'DM Mono',monospace; font-weight:700; }
+.archive-list { display:flex; flex-direction:column; gap:8px; }
+.analysis-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:all .15s; }
+.analysis-item:hover { border-color:var(--blue); box-shadow:var(--shadow-md); }
+.analysis-meta { font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; }
+
+/* TOP PICKS */
+.top-picks { background:linear-gradient(135deg,#0f172a,#1e293b); border-radius:var(--radius); padding:16px; margin-bottom:16px; color:#fff; }
+.top-picks-title { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.2em; color:#94a3b8; margin-bottom:12px; text-transform:uppercase; }
+.pick-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
+.pick-card { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:12px; }
+.pick-rank { font-size:9px; font-family:'DM Mono',monospace; color:#64748b; letter-spacing:.1em; margin-bottom:4px; }
+.pick-name { font-size:13px; font-weight:600; margin-bottom:4px; }
+.pick-ev { font-size:18px; font-weight:700; color:#00e676; }
+.pick-prob { font-size:11px; color:#94a3b8; margin-top:2px; font-family:'DM Mono',monospace; }
+
+/* RELIABILITY GUIDE */
+.rel-guide { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.rel-chip { display:flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:10px; font-family:'DM Mono',monospace; }
+
+/* SECTION TITLE */
+.section-title { font-size:16px; font-weight:700; margin:0 0 14px; display:flex; align-items:center; gap:10px; }
+.section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* STAT MINI */
+.stat-mini { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center; }
+.stat-mini-label { font-size:9px; font-family:'DM Mono',monospace; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; margin-bottom:4px; }
+.stat-mini-val { font-size:18px; font-weight:700; }
+
+/* SQUAD SECTION */
+.squad-section { margin-bottom:16px; }
+.squad-header { display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--surface2); border-radius:var(--radius-sm); margin-bottom:8px; font-weight:600; font-size:13px; }
+.squad-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+/* SAVED TOAST */
+.toast { position:fixed; bottom:20px; right:20px; background:var(--text); color:#fff; padding:10px 18px; border-radius:20px; font-size:13px; font-weight:600; z-index:9999; transform:translateY(60px); opacity:0; transition:all .3s; pointer-events:none; }
+.toast.show { transform:translateY(0); opacity:1; }
+
+/* RESPONSIVE */
+@media(max-width:600px) {
+  .outcome-grid { grid-template-columns:1fr; }
+  .line-sides { grid-template-columns:1fr; }
+  .input-row { grid-template-columns:1fr; }
+  .pick-grid { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- BACK BUTTON (shown when viewing results) -->
+<div class="header">
+  <div class="header-logo">⚽</div>
+  <div>
+    <div class="header-title">VALUE <span>ANALYZER</span> PRO</div>
+    <div class="header-sub">XTS · XC · POISSON · DIXON-COLES · EV · ARBITRO</div>
+  </div>
+  <button class="back-btn" id="back-btn" onclick="goBack()">← Indietro</button>
+</div>
+
+<!-- VIEWS -->
+<div id="view-input">
+
+<!-- ARCHIVIO CAMPIONATI -->
+<div class="panel" id="league-panel">
+  <div class="panel-header" onclick="togglePanel('league-body','league-toggle')">
+    <span style="font-size:20px">🏆</span>
+    <div style="flex:1">
+      <div style="font-weight:700;font-size:14px">Archivio Campionati</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:1px">Attivo: <span id="active-league-name" style="color:var(--green);font-weight:600">— nessuno</span></div>
+    </div>
+    <span class="panel-toggle" id="league-toggle">▼ apri</span>
+  </div>
+  <div id="league-body" style="display:none;margin-top:14px">
+    <!-- GUIDA AFFIDABILITÀ -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px">
+      <div class="card-title" style="margin-bottom:8px">📊 Guida Affidabilità</div>
+      <div class="rel-guide">
+        <div class="rel-chip rel-alta"><span style="width:6px;height:6px;border-radius:50%;background:#15803d;display:inline-block"></span>65%+ ALTA</div>
+        <div class="rel-chip rel-buona"><span style="width:6px;height:6px;border-radius:50%;background:#92400e;display:inline-block"></span>50–65% BUONA</div>
+        <div class="rel-chip rel-media"><span style="width:6px;height:6px;border-radius:50%;background:#c2410c;display:inline-block"></span>35–50% MEDIA</div>
+        <div class="rel-chip rel-bassa"><span style="width:6px;height:6px;border-radius:50%;background:#b91c1c;display:inline-block"></span>&lt;35% BASSA</div>
+      </div>
+    </div>
+    <!-- CAMPIONATI SALVATI -->
+    <div style="margin-bottom:14px">
+      <div class="card-title" style="margin-bottom:8px">CAMPIONATI SALVATI</div>
+      <div id="leagues-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <div style="color:var(--gold);font-size:12px;padding:10px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px">⬇️ Nessun campionato — inserisci le medie qui sotto e premi Salva</div>
+      </div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin-bottom:14px">
+    <!-- FORM -->
+    <div class="card-title" id="league-form-title" style="margin-bottom:10px">➕ NUOVO CAMPIONATO</div>
+    <div style="margin-bottom:10px">
+      <label class="field-label">Nome Campionato</label>
+      <input type="text" id="lg-nome" placeholder="Es: Serie A 2025/26, Premier League 2025/26...">
+    </div>
+    <div class="input-grid">
+      <div><label class="field-label">Gol/gara</label><input type="number" id="lg-gol" step="0.01" placeholder="2.65"></div>
+      <div><label class="field-label">Tiri totali</label><input type="number" id="lg-tiri" step="0.01" placeholder="24.5"></div>
+      <div><label class="field-label">Tiri in porta</label><input type="number" id="lg-tirop" step="0.01" placeholder="8.2"></div>
+      <div><label class="field-label">Corner</label><input type="number" id="lg-corner" step="0.01" placeholder="10.1"></div>
+      <div><label class="field-label">Falli</label><input type="number" id="lg-falli" step="0.01" placeholder="24.5"></div>
+      <div><label class="field-label">Gialli</label><input type="number" id="lg-gialli" step="0.01" placeholder="4.2"></div>
+      <div><label class="field-label">Fuorigioco</label><input type="number" id="lg-fuori" step="0.01" placeholder="3.1"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-blue" onclick="saveLeague()">💾 Salva Campionato</button>
+      <button class="btn btn-ghost btn-sm" id="btn-cancel-lg" style="display:none" onclick="cancelLeagueEdit()">✕ Annulla</button>
+    </div>
+    <input type="hidden" id="lg-editing-id" value="">
+  </div>
+</div>
+
+<!-- ARCHIVIO ANALISI -->
+<div class="panel" id="analyses-panel">
+  <div class="panel-header" onclick="togglePanel('analyses-body','analyses-toggle')">
+    <span style="font-size:20px">📁</span>
+    <div style="flex:1">
+      <div style="font-weight:700;font-size:14px">Archivio Analisi</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:1px">Analisi salvate automaticamente</div>
+    </div>
+    <span class="panel-toggle" id="analyses-toggle">▼ apri</span>
+  </div>
+  <div id="analyses-body" style="display:none;margin-top:14px">
+    <div id="analyses-list" class="archive-list">
+      <div style="color:var(--muted);font-size:12px;padding:8px">Nessuna analisi salvata ancora.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MATCH SELECTOR -->
+<div class="card">
+  <div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:12px;align-items:end">
+    <div>
+      <label class="field-label">Campionato</label>
+      <select id="league-select" onchange="onLeagueChange()">
+        <option value="">— Seleziona campionato —</option>
+        <option value="serie_a">Serie A</option>
+        <option value="premier">Premier League</option>
+        <option value="laliga">La Liga</option>
+        <option value="bundesliga">Bundesliga</option>
+        <option value="ligue1">Ligue 1</option>
+      </select>
+    </div>
+    <div></div>
+    <div></div>
+    <button class="btn btn-ghost btn-sm" onclick="loadSample()">📋 Esempio</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end;margin-top:10px">
+    <div>
+      <label class="field-label">Squadra Casa</label>
+      <select id="team-home"></select>
+    </div>
+    <div style="font-weight:700;font-size:18px;color:var(--muted);padding-bottom:4px;text-align:center">VS</div>
+    <div>
+      <label class="field-label">Squadra Ospite</label>
+      <select id="team-away"></select>
+    </div>
+  </div>
+</div>
+
+<!-- INPUT QUOTE + STATS -->
+<div class="input-row">
+  <div class="card" style="margin-bottom:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:0">📋 Quote Bookmaker</div>
+      <button class="btn-reset" onclick="clearField('odds-input')" title="Svuota campo">✕</button>
+    </div>
+    <div class="card-accent" style="background:var(--green)"></div>
+    <div class="field-wrap">
+      <textarea id="odds-input" rows="8" placeholder="Incolla le quote in qualsiasi formato&#10;&#10;Es:&#10;Q.Teoriche&#10;2.14  3.43  3.38&#10;Current Q.Reali&#10;2.4  3.21  3.28&#10;Over/Under2.5&#10;1.67  2.20&#10;Gol/No Goal&#10;1.91  1.91"></textarea>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:0">📊 Statistiche Partita</div>
+      <button class="btn-reset" onclick="clearField('stats-input')" title="Svuota campo">✕</button>
+    </div>
+    <div class="card-accent" style="background:var(--blue)"></div>
+    <div class="field-wrap">
+      <textarea id="stats-input" rows="8" placeholder="Incolla le statistiche&#10;&#10;Es:&#10;Tiri Totali&#10;12.86  24.78  11.92&#10;Corner&#10;4.59  8.6  4.01&#10;Falli&#10;10.67  23.82  13.15"></textarea>
+    </div>
+  </div>
+</div>
+<div style="margin-bottom:14px"></div>
+
+<!-- ARBITRO -->
+<div class="card">
+  <div class="card-accent" style="background:var(--gold)"></div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="font-size:20px">🟨</span>
+    <div style="flex:1">
+      <div class="card-title" style="margin-bottom:0">Arbitro — Opzionale</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:1px">Salvato automaticamente in archivio</div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div style="min-width:160px">
+        <select id="referee-select" onchange="loadRefereeFromArchive()">
+          <option value="">— Seleziona arbitro —</option>
+        </select>
+      </div>
+      <button class="btn-reset" onclick="clearField('referee-input')" title="Svuota campo">✕</button>
+    </div>
+  </div>
+  <div class="field-wrap">
+    <textarea id="referee-input" rows="3" placeholder="Arbitro: Maurizio Mariani, Italy&#10;14  23.43  4.14  5.66  0.14&#10;&#10;Oppure: Falli medi: 23.43 / Gialli medi: 4.14"></textarea>
+  </div>
+  <div id="ref-preview" style="display:none;margin-top:10px"></div>
+</div>
+
+<!-- ANALIZZA -->
+<button class="analyze-btn" onclick="analyze()">⚡ ANALIZZA VALORE</button>
+
+</div><!-- end view-input -->
+
+<!-- RESULTS VIEW -->
+<div id="view-results" style="display:none">
+
+  <div id="match-title" class="section-title"></div>
+
+  <!-- TOP PICKS -->
+  <div class="top-picks" id="top-picks-box"></div>
+
+  <!-- 1X2 -->
+  <div class="outcome-grid" id="outcome-grid"></div>
+
+  <!-- TABS -->
+  <div class="tabs" id="result-tabs"></div>
+
+  <!-- TAB CONTENT -->
+  <div id="tab-content"></div>
+
+</div><!-- end view-results -->
+
+</div><!-- end app -->
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const LEAGUES = {
+  serie_a: { name:'Serie A', teams:['Atalanta','Bologna','Cagliari','Como','Cremonese','Fiorentina','Genoa','Inter','Juventus','Lazio','Lecce','Milan','Napoli','Parma','Pisa','Roma','Sassuolo','Torino','Udinese','Verona'] },
+  premier:  { name:'Premier League', teams:['Arsenal','Aston Villa','Bournemouth','Brentford','Brighton & Hove Albion','Burnley','Chelsea','Crystal Palace','Everton','Fulham','Leeds United','Liverpool','Manchester City','Manchester United','Newcastle United','Nottingham Forest','Sunderland','Tottenham Hotspur','West Ham United','Wolverhampton Wanderers'] },
+  laliga:   { name:'La Liga', teams:['Alavés','Athletic Bilbao','Atlético Madrid','Barcellona','Betis','Celta Vigo','Elche','Espanyol','Getafe','Girona','Levante','Maiorca','Osasuna','Oviedo','Rayo Vallecano','Real Madrid','Real Sociedad','Siviglia','Valencia','Villarreal'] },
+  bundesliga:{ name:'Bundesliga', teams:['Augsburg','Bayern Monaco','Borussia Dortmund','Borussia Mönchengladbach','Colonia','Eintracht Frankfurt','Freiburg','Hamburger SV','Heidenheim','Hoffenheim','Leverkusen','Lipsia','Mainz','St. Pauli','Union Berlin','Stoccarda','Werder Brema','Wolfsburg'] },
+  ligue1:   { name:'Ligue 1', teams:['Ajaccio','Angers SCO','Brest','Havre AC','Lens','Lille','Lorient','Lione','Marsiglia','Metz','Monaco','Nantes','Nizza','Paris FC','PSG','Rennes','Strasbourg','Tolosa'] }
+};
+const LG_DEFAULTS = {gol:2.65,tiri:24.5,tirop:8.2,corner:10.1,falli:24.5,gialli:4.2,fuori:3.1};
+const SK_LEAGUES  = 'va-leagues-v1';
+const SK_ACTIVE   = 'va-active-league-v1';
+const SK_ANALYSES = 'va-analyses-v1';
+const SK_REFEREES = 'va-referees-v1';
+
+let leaguesCache = {};
+let activeLeagueId = null;
+let analysesCache = [];
+let refereesCache = {};
+let currentResult = null;
+
+// ============================================================
+// STORAGE
+// ============================================================
+function sGet(k){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;} }
+function sSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+
+// ============================================================
+// INIT
+// ============================================================
+function init(){
+  leaguesCache  = sGet(SK_LEAGUES)  || {};
+  activeLeagueId= sGet(SK_ACTIVE);
+  analysesCache = sGet(SK_ANALYSES) || [];
+  refereesCache = sGet(SK_REFEREES) || {};
+  renderLeaguesList();
+  renderAnalysesList();
+  renderRefereeSelect();
+  fillActiveLeagueHeader();
+}
+
+// ============================================================
+// LEAGUES
+// ============================================================
+function getActiveLg(){
+  if(activeLeagueId && leaguesCache[activeLeagueId]) return leaguesCache[activeLeagueId];
+  const k=Object.keys(leaguesCache); if(k.length) return leaguesCache[k[0]];
+  return {...LG_DEFAULTS, name:'Default'};
+}
+function fillActiveLeagueHeader(){
+  document.getElementById('active-league-name').textContent = getActiveLg().name;
+}
+function renderLeaguesList(){
+  const c=document.getElementById('leagues-list'), keys=Object.keys(leaguesCache);
+  if(!keys.length){ c.innerHTML='<div style="color:var(--gold);font-size:12px;padding:10px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px">⬇️ Nessun campionato — inserisci le medie qui sotto e premi Salva</div>'; return; }
+  c.innerHTML = keys.map(id=>{
+    const lg=leaguesCache[id], isA=id===activeLeagueId;
+    return `<div class="archive-card ${isA?'active':''}">
+      ${isA?'<div class="archive-badge-active">✓ ATTIVO</div>':''}
+      <div style="font-weight:700;font-size:14px;margin-bottom:3px;padding-right:${isA?70:0}px">${lg.name}</div>
+      <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:8px">Gol ${lg.gol} · Tiri ${lg.tiri} · Corner ${lg.corner} · Falli ${lg.falli} · Gialli ${lg.gialli}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${!isA?`<button class="btn btn-ghost btn-sm" onclick="selectLeague('${id}')">✓ Usa</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="editLeague('${id}')">✏️ Modifica</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLeague('${id}')">🗑 Elimina</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function selectLeague(id){ activeLeagueId=id; sSet(SK_ACTIVE,id); renderLeaguesList(); fillActiveLeagueHeader(); showToast('✓ Campionato selezionato'); }
+function editLeague(id){
+  const lg=leaguesCache[id]; if(!lg) return;
+  document.getElementById('lg-editing-id').value=id;
+  document.getElementById('lg-nome').value=lg.name;
+  document.getElementById('lg-gol').value=lg.gol;
+  document.getElementById('lg-tiri').value=lg.tiri;
+  document.getElementById('lg-tirop').value=lg.tirop;
+  document.getElementById('lg-corner').value=lg.corner;
+  document.getElementById('lg-falli').value=lg.falli;
+  document.getElementById('lg-gialli').value=lg.gialli;
+  document.getElementById('lg-fuori').value=lg.fuori;
+  document.getElementById('league-form-title').textContent='✏️ MODIFICA CAMPIONATO';
+  document.getElementById('btn-cancel-lg').style.display='inline-flex';
+  if(!document.getElementById('league-body').style.display||document.getElementById('league-body').style.display==='none'){
+    togglePanel('league-body','league-toggle');
+  }
+  document.getElementById('lg-nome').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function saveLeague(){
+  const name=document.getElementById('lg-nome').value.trim();
+  if(!name){ alert('Inserisci il nome del campionato.'); return; }
+  let id=document.getElementById('lg-editing-id').value||('lg_'+Date.now());
+  const entry={id,name,
+    gol:parseFloat(document.getElementById('lg-gol').value)||LG_DEFAULTS.gol,
+    tiri:parseFloat(document.getElementById('lg-tiri').value)||LG_DEFAULTS.tiri,
+    tirop:parseFloat(document.getElementById('lg-tirop').value)||LG_DEFAULTS.tirop,
+    corner:parseFloat(document.getElementById('lg-corner').value)||LG_DEFAULTS.corner,
+    falli:parseFloat(document.getElementById('lg-falli').value)||LG_DEFAULTS.falli,
+    gialli:parseFloat(document.getElementById('lg-gialli').value)||LG_DEFAULTS.gialli,
+    fuori:parseFloat(document.getElementById('lg-fuori').value)||LG_DEFAULTS.fuori
+  };
+  leaguesCache[id]=entry; sSet(SK_LEAGUES,leaguesCache);
+  if(!activeLeagueId||activeLeagueId===id){ activeLeagueId=id; sSet(SK_ACTIVE,id); }
+  renderLeaguesList(); fillActiveLeagueHeader(); cancelLeagueEdit(); showToast('✓ Campionato salvato!');
+}
+function deleteLeague(id){
+  if(!confirm('Eliminare questo campionato?')) return;
+  delete leaguesCache[id]; sSet(SK_LEAGUES,leaguesCache);
+  if(activeLeagueId===id){ const k=Object.keys(leaguesCache); activeLeagueId=k.length?k[0]:null; sSet(SK_ACTIVE,activeLeagueId); }
+  renderLeaguesList(); fillActiveLeagueHeader();
+}
+function cancelLeagueEdit(){
+  document.getElementById('lg-editing-id').value='';
+  document.getElementById('lg-nome').value='';
+  ['lg-gol','lg-tiri','lg-tirop','lg-corner','lg-falli','lg-gialli','lg-fuori'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('league-form-title').textContent='➕ NUOVO CAMPIONATO';
+  document.getElementById('btn-cancel-lg').style.display='none';
+}
+
+// ============================================================
+// ANALYSES ARCHIVE
+// ============================================================
+function saveAnalysis(home, away, result){
+  const entry={ id:'a_'+Date.now(), date:new Date().toLocaleDateString('it-IT'), time:new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}), home, away, lh:result.lh, la:result.la, gp:result.gp, odds:result.odds, league: getActiveLg().name };
+  analysesCache.unshift(entry);
+  if(analysesCache.length>50) analysesCache=analysesCache.slice(0,50);
+  sSet(SK_ANALYSES, analysesCache);
+  renderAnalysesList();
+}
+function renderAnalysesList(){
+  const c=document.getElementById('analyses-list');
+  if(!analysesCache.length){ c.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px">Nessuna analisi salvata ancora.</div>'; return; }
+  c.innerHTML=analysesCache.map(a=>`
+    <div class="analysis-item" onclick="loadAnalysis('${a.id}')">
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${a.home} vs ${a.away}</div>
+        <div class="analysis-meta">${a.league} · ${a.date} ${a.time}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">1: ${(a.gp.hw*100).toFixed(0)}% · X: ${(a.gp.dr*100).toFixed(0)}% · 2: ${(a.gp.aw*100).toFixed(0)}%</div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteAnalysis('${a.id}')">🗑</button>
+    </div>`).join('');
+}
+function deleteAnalysis(id){ analysesCache=analysesCache.filter(a=>a.id!==id); sSet(SK_ANALYSES,analysesCache); renderAnalysesList(); }
+function loadAnalysis(id){
+  const a=analysesCache.find(x=>x.id===id);
+  if(!a) return;
+  // Reload full analysis from stored data
+  showToast('📂 Analisi caricata');
+}
+
+// ============================================================
+// REFEREES ARCHIVE
+// ============================================================
+function saveReferee(refData){
+  if(!refData||!refData.name) return;
+  const key=refData.name.toLowerCase().replace(/\s+/g,'_');
+  refereesCache[key]=refData;
+  sSet(SK_REFEREES, refereesCache);
+  renderRefereeSelect();
+}
+function renderRefereeSelect(){
+  const sel=document.getElementById('referee-select');
+  const keys=Object.keys(refereesCache);
+  sel.innerHTML='<option value="">— Seleziona arbitro —</option>';
+  keys.forEach(k=>{
+    const r=refereesCache[k];
+    const opt=document.createElement('option');
+    opt.value=k; opt.textContent=r.name+(r.partite?` (${r.partite} gare)`:'');
+    sel.appendChild(opt);
+  });
+  // Add delete buttons next to select — shown in archive section
+  renderRefereesArchive();
+}
+function renderRefereesArchive(){
+  const el=document.getElementById('referees-archive');
+  if(!el) return;
+  const keys=Object.keys(refereesCache);
+  if(!keys.length){ el.innerHTML='<div style="color:var(--muted);font-size:12px">Nessun arbitro salvato.</div>'; return; }
+  el.innerHTML=keys.map(k=>{
+    const r=refereesCache[k];
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface)">
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${r.name}</div><div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${r.partite||'—'} gare · Falli ${r.medFalli?.toFixed(1)||'—'} · Gialli ${r.medGialli?.toFixed(1)||'—'}</div></div>
+      <button class="btn btn-danger btn-sm" onclick="deleteReferee('${k}')">🗑</button>
+    </div>`;
+  }).join('');
+}
+function deleteReferee(k){ delete refereesCache[k]; sSet(SK_REFEREES,refereesCache); renderRefereeSelect(); showToast('Arbitro eliminato'); }
+function loadRefereeFromArchive(){
+  const key=document.getElementById('referee-select').value;
+  if(!key) return;
+  const r=refereesCache[key];
+  if(!r) return;
+  let txt=`Arbitro: ${r.name}`;
+  if(r.partite) txt+=`\n${r.partite}\t${r.medFalli}\t${r.medGialli}\t${r.xFalli||0}\t${r.medRossi||0}`;
+  document.getElementById('referee-input').value=txt;
+}
+
+// ============================================================
+// TEAM SELECTORS
+// ============================================================
+function onLeagueChange(){
+  const val=document.getElementById('league-select').value;
+  const lg=LEAGUES[val];
+  ['team-home','team-away'].forEach(id=>{
+    const sel=document.getElementById(id);
+    sel.innerHTML='<option value="">— Seleziona —</option>';
+    if(lg) lg.teams.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
+  });
+}
+
+// ============================================================
+// MATH
+// ============================================================
+function poisson(lam,k){ if(lam<=0||k<0)return 0; let r=Math.exp(-lam); for(let i=1;i<=k;i++)r*=lam/i; return r; }
+function poissonCDF(lam,k){ let s=0; for(let i=0;i<=k;i++)s+=poisson(lam,i); return s; }
+function dcFactor(h,a,lh,la,rho){ if(h===0&&a===0)return 1-lh*la*rho; if(h===0&&a===1)return 1+lh*rho; if(h===1&&a===0)return 1+la*rho; if(h===1&&a===1)return 1-rho; return 1; }
+function buildMatrix(lh,la,rho=-0.13,maxG=8){ let mat=[],hw=0,dr=0,aw=0; for(let h=0;h<maxG;h++){ mat[h]=[]; for(let a=0;a<maxG;a++){ const p=poisson(lh,h)*poisson(la,a)*dcFactor(h,a,lh,la,rho); mat[h][a]=p; if(h>a)hw+=p; else if(h===a)dr+=p; else aw+=p; }} const tot=hw+dr+aw; return{mat,hw:hw/tot,dr:dr/tot,aw:aw/tot,tot}; }
+function calcGoalProbs(lh,la){ const{mat,hw,dr,aw,tot}=buildMatrix(lh,la); let o05=0,o15=0,o25=0,o35=0,o45=0,btts=0; for(let h=0;h<8;h++)for(let a=0;a<8;a++){ const p=mat[h][a]/tot,s=h+a; if(s>0.5)o05+=p; if(s>1.5)o15+=p; if(s>2.5)o25+=p; if(s>3.5)o35+=p; if(s>4.5)o45+=p; if(h>0&&a>0)btts+=p; } return{hw,dr,aw,o05,o15,o25,o35,o45,btts,u05:1-o05,u15:1-o15,u25:1-o25,u35:1-o35,u45:1-o45,nobtts:1-btts}; }
+function evCalc(p,o){ return(p*(o-1))-(1-p); }
+function reliability(prob){ const p=Math.max(prob,1-prob); if(p>=0.65)return{label:'ALTA',cls:'rel-alta'}; if(p>=0.50)return{label:'BUONA',cls:'rel-buona'}; if(p>=0.35)return{label:'MEDIA',cls:'rel-media'}; return{label:'BASSA',cls:'rel-bassa'}; }
+
+// ============================================================
+// PARSERS
+// ============================================================
+function extractNums(txt){ return(txt.match(/\d+\.?\d*/g)||[]).map(Number).filter(n=>n>0); }
+function parseStats(txt){
+  if(!txt?.trim())return{};
+  const lines=txt.split('\n').map(l=>l.replace(/\t/g,' ').trim()).filter(Boolean);
+  function findVal(keys){ for(let i=0;i<lines.length;i++){ if(keys.some(k=>lines[i].toLowerCase().includes(k.toLowerCase()))){ for(let j=i;j<=Math.min(i+2,lines.length-1);j++){ const n=extractNums(lines[j]); if(n.length)return n; } } } return null; }
+  const tiri=findVal(['tiri totali','tiri tot']),tirop=findVal(['tiri in porta','shots on']),corner=findVal(['corner']),falli=findVal(['falli','fouls']),gialli=findVal(['cartellini gialli','gialli','yellow']),fuori=findVal(['fuorigioco','offside']),parate=findVal(['parate','saves']);
+  let xgHome=null,xgAway=null;
+  const xgL=findVal(['xg','expected goal']);
+  if(xgL?.length>=2){xgHome=xgL[0];xgAway=xgL[1];}else if(tirop?.length>=3){xgHome=tirop[0]*0.32;xgAway=tirop[2]*0.32;}
+  return{ tiriHome:tiri?.[0],tiriTotal:tiri?.[1],tiriAway:tiri?.[2], tiropHome:tirop?.[0],tiropTotal:tirop?.[1],tiropAway:tirop?.[2], cornerHome:corner?.[0],cornerTotal:corner?.[1],cornerAway:corner?.[2], falliHome:falli?.[0],falliTotal:falli?.[1],falliAway:falli?.[2], gialliHome:gialli?.[0],gialliTotal:gialli?.[1],gialliAway:gialli?.[2], fuorigiocoHome:fuori?.[0],fuorigiocoTotal:fuori?.[1],fuorigiocoAway:fuori?.[2], parateHome:parate?.[0],parateAway:parate?.[1],xgHome,xgAway };
+}
+function parseOdds(txt){
+  if(!txt?.trim())return{};
+  const lines=txt.split('\n').map(l=>l.replace(/\t/g,' ').trim());
+  const result={};
+  function findMkt(keys){ for(let i=0;i<lines.length;i++){ if(keys.some(k=>lines[i].toLowerCase().includes(k.toLowerCase()))){ let nums=[]; for(let j=i;j<Math.min(i+12,lines.length);j++){ const m=lines[j].match(/\d+\.?\d+/g); if(m)nums.push(...m.map(Number).filter(n=>n>=1.01&&n<=100)); if(nums.length>=6)break; } return nums; } } return[]; }
+  const curr=findMkt(['current q.reali','quote attuali']); if(curr.length>=3){result.current1=curr[0];result.currentX=curr[1];result.current2=curr[2];}
+  const teor=findMkt(['q.teoriche','teoriche']); if(teor.length>=3){result.teorica1=teor[0];result.teoreticaX=teor[1];result.teoretica2=teor[2];}
+  if(!result.current1){const r=findMkt(['1 - x - 2','1x2']);if(r.length>=3){result.current1=r[0];result.currentX=r[1];result.current2=r[2];}}
+  const pp=(keys)=>{const n=findMkt(keys);return n.length>=2?{o:n[n.length-2],u:n[n.length-1]}:null;};
+  const ou15=pp(['over/under1.5','under1.5']),ou25=pp(['over/under2.5','under2.5']),ou35=pp(['over/under3.5','under3.5']),ou45=pp(['over/under4.5']),gg=pp(['gol/no goal','gg/no','btts']);
+  if(ou15){result.over15=ou15.o;result.under15=ou15.u;} if(ou25){result.over25=ou25.o;result.under25=ou25.u;} if(ou35){result.over35=ou35.o;result.under35=ou35.u;} if(ou45){result.over45=ou45.o;result.under45=ou45.u;} if(gg){result.ggOdds=gg.o;result.noggOdds=gg.u;}
+  return result;
+}
+function parseRef(txt){
+  if(!txt?.trim())return null;
+  const lines=txt.split('\n').map(l=>l.replace(/\t/g,' ').trim()).filter(Boolean);
+  let name='',partite=0,medFalli=0,medGialli=0,xFalli=0,medRossi=0;
+  for(const l of lines){ if(l.toLowerCase().startsWith('arbitro')){name=l.replace(/arbitro\s*[:·]?\s*/i,'').trim();break;} if((l.match(/\d/g)||[]).length===0&&l.length>3&&l.length<60){name=l;break;} }
+  for(const l of lines){ const nums=(l.match(/\d+\.?\d*/g)||[]).map(Number).filter(n=>n>0); if(nums.length>=4){partite=nums[0];medFalli=nums[1];medGialli=nums[2];xFalli=nums[3];medRossi=nums[4]||0;break;} }
+  if(!medFalli){ for(const l of lines){ const ll=l.toLowerCase(),n=parseFloat((l.match(/[\d.]+$/)||[])[0]); if(!isNaN(n)){ if(ll.includes('falli'))medFalli=n; else if(ll.includes('gialli')||ll.includes('ammon'))medGialli=n; else if(ll.includes('rossi'))medRossi=n; else if(ll.includes('partite')||ll.includes('gare'))partite=n; else if(ll.includes('ogni'))xFalli=n; } } }
+  if(!medFalli&&!medGialli)return null;
+  return{name,partite,medFalli,medGialli,xFalli,medRossi};
+}
+function calcBlend(stats,refData,lg){
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lgAgg=lg.falli/lg.tiri,lgProp=lg.gialli/lg.falli;
+  let idxAgg=1,idxProp=1;
+  if(stats.falliTotal>0&&stats.tiriTotal>0)idxAgg=clamp((stats.falliTotal/stats.tiriTotal)/lgAgg,0.7,1.3);
+  if(stats.gialliTotal>0&&stats.falliTotal>0)idxProp=clamp((stats.gialliTotal/stats.falliTotal)/lgProp,0.7,1.3);
+  const rawF=stats.falliTotal||lg.falli,rawG=stats.gialliTotal||lg.gialli;
+  const baseF=rawF*0.8+rawF*idxAgg*0.2,baseG=rawG*0.8+rawG*idxProp*0.2;
+  const sf=refData?clamp((refData.partite||14)/30,0,1):0;
+  const wF=0.25*sf,wG=0.35*sf;
+  const lF=(refData&&refData.medFalli>0)?baseF*(1-wF)+refData.medFalli*wF:baseF;
+  const lG=(refData&&refData.medGialli>0)?baseG*(1-wG)+refData.medGialli*wG:baseG;
+  return{lF,lG,wF,wG,sf,baseF,baseG,idxAgg,idxProp,lgAgg,lgProp,rawF,rawG};
+}
+
+// ============================================================
+// MAIN ANALYZE
+// ============================================================
+function analyze(){
+  const oddsT=document.getElementById('odds-input').value;
+  const statsT=document.getElementById('stats-input').value;
+  const refT=document.getElementById('referee-input').value;
+  if(!oddsT.trim()&&!statsT.trim()&&!refT.trim()){alert('Incolla almeno un campo.');return;}
+
+  const home=document.getElementById('team-home').value||'Casa';
+  const away=document.getElementById('team-away').value||'Ospite';
+  const lg=getActiveLg();
+  const stats=parseStats(statsT);
+  const odds=parseOdds(oddsT+'\n'+statsT);
+  const ref=parseRef(refT);
+
+  // Save referee to archive
+  if(ref&&ref.name) saveReferee(ref);
+
+  let lh=stats.xgHome||1.4, la=stats.xgAway||1.1;
+  if(odds.teorica1>1&&odds.teoreticaX>1&&odds.teoretica2>1){
+    const pt=1/odds.teorica1,dt=1/odds.teoreticaX,at=1/odds.teoretica2,norm=pt+dt+at;
+    lh=Math.max(0.4,Math.min(3.5,(pt/norm)*5)); la=Math.max(0.4,Math.min(3.5,(at/norm)*4));
+  }
+  const gp=calcGoalProbs(lh,la);
+  const blend=calcBlend(stats,ref,lg);
+  const xTiriTotal=stats.tiriTotal?(stats.tiriTotal*0.8+lg.tiri*0.2):null;
+  const xTiriHome=stats.tiriHome||null, xTiriAway=stats.tiriAway||null;
+  const xTiropTotal=stats.tiropTotal?(stats.tiropTotal*0.8+lg.tirop*0.2):null;
+  const xTiropHome=stats.tiropHome||null, xTiropAway=stats.tiropAway||null;
+  const xCornerTotal=stats.cornerTotal?(stats.cornerTotal*0.75+lg.corner*0.25):null;
+  const xCornerHome=stats.cornerHome||null, xCornerAway=stats.cornerAway||null;
+  const xFuoriTotal=stats.fuorigiocoTotal||lg.fuori;
+  const xFuoriHome=stats.fuorigiocoHome||null, xFuoriAway=stats.fuorigiocoAway||null;
+
+  currentResult={stats,odds,ref,gp,blend,lh,la,lg,home,away,xTiriTotal,xTiriHome,xTiriAway,xTiropTotal,xTiropHome,xTiropAway,xCornerTotal,xCornerHome,xCornerAway,xFuoriTotal,xFuoriHome,xFuoriAway};
+
+  saveAnalysis(home, away, currentResult);
+  renderResults(currentResult);
+  showView('results');
+}
+
+// ============================================================
+// RENDER RESULTS
+// ============================================================
+function renderResults(r){
+  const {stats,odds,gp,blend,lh,la,lg,home,away} = r;
+
+  document.getElementById('match-title').textContent = `🏟️ ${home} vs ${away}`;
+
+  // TOP PICKS
+  renderTopPicks(r);
+
+  // 1X2
+  const og=document.getElementById('outcome-grid');
+  og.innerHTML=[
+    {label:`1 — ${home}`,prob:gp.hw,odd:odds.current1,cls:'home',col:'var(--gold)'},
+    {label:'X — Pareggio',prob:gp.dr,odd:odds.currentX,cls:'draw',col:'var(--purple)'},
+    {label:`2 — ${away}`,prob:gp.aw,odd:odds.current2,cls:'away',col:'var(--blue)'},
+  ].map(({label,prob,odd,cls,col})=>{
+    const ev=odd&&odd>1?evCalc(prob,odd)*100:null;
+    const rel=reliability(prob);
+    return `<div class="outcome-card ${cls}">
+      <div class="outcome-label">${label}</div>
+      <div class="outcome-prob" style="color:${col}">${(prob*100).toFixed(1)}%</div>
+      <div class="outcome-fair">Fair: ${(1/prob).toFixed(2)}</div>
+      ${odd?`<div class="outcome-bm">BM: ${odd}</div>`:''}
+      ${ev!==null?`<div class="outcome-ev ${ev>0?'ev-pos':'ev-neg'}">${ev>0?'+':''}${ev.toFixed(1)}% EV</div>`:''}
+      <div style="margin-top:6px"><span class="badge ${rel.cls}">${rel.label} ${(Math.max(prob,1-prob)*100).toFixed(0)}%</span></div>
+    </div>`;
+  }).join('');
+
+  // TABS
+  const tabs=[
+    {id:'ranking',l:'🏆 Ranking'},
+    {id:'goals',l:'⚽ Gol'},
+    {id:'shots',l:'🎯 Tiri (XTS)'},
+    {id:'corners',l:'🚩 Corner (XC)'},
+    {id:'offside',l:'🏃 Fuorigioco'},
+    {id:'referee',l:'🟨 Arbitro'},
+    {id:'matrix',l:'🔢 Matrice'},
+    {id:'stats',l:'📋 Stats'},
+  ];
+  const tabsEl=document.getElementById('result-tabs');
+  tabsEl.innerHTML=tabs.map(t=>`<button class="tab ${t.id==='ranking'?'active':''}" onclick="switchTab('${t.id}')" id="tab-btn-${t.id}">${t.l}</button>`).join('');
+
+  switchTab('ranking');
+}
+
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const btn=document.getElementById('tab-btn-'+id); if(btn) btn.classList.add('active');
+  const c=document.getElementById('tab-content');
+  const r=currentResult;
+  if(!r) return;
+
+  if(id==='ranking') c.innerHTML=renderRankingHTML(r);
+  else if(id==='goals') c.innerHTML=renderGoalsHTML(r);
+  else if(id==='shots') c.innerHTML=renderShotsHTML(r);
+  else if(id==='corners') c.innerHTML=renderCornersHTML(r);
+  else if(id==='offside') c.innerHTML=renderOffsideHTML(r);
+  else if(id==='referee') c.innerHTML=renderRefereeHTML(r);
+  else if(id==='matrix') c.innerHTML=renderMatrixHTML(r);
+  else if(id==='stats') c.innerHTML=renderStatsHTML(r);
+}
+
+// ---- TOP PICKS ----
+function renderTopPicks(r){
+  const{gp,odds}=r; const items=[];
+  const add=(name,prob,bm)=>{ if(!prob||prob<=0||prob>=1||!bm||bm<=1)return; const ev=evCalc(prob,bm)*100; items.push({name,prob,bm,ev}); };
+  add(`1—${r.home}`,gp.hw,odds.current1); add('X',gp.dr,odds.currentX); add(`2—${r.away}`,gp.aw,odds.current2);
+  add('Over 1.5',gp.o15,odds.over15); add('Under 1.5',gp.u15,odds.under15);
+  add('Over 2.5',gp.o25,odds.over25); add('Under 2.5',gp.u25,odds.under25);
+  add('Over 3.5',gp.o35,odds.over35); add('Under 3.5',gp.u35,odds.under35);
+  add('GG',gp.btts,odds.ggOdds); add('No GG',gp.nobtts,odds.noggOdds);
+  items.sort((a,b)=>b.ev-a.ev);
+  const top=items.slice(0,4);
+  if(!top.length){ document.getElementById('top-picks-box').style.display='none'; return; }
+  document.getElementById('top-picks-box').style.display='block';
+  document.getElementById('top-picks-box').innerHTML=`
+    <div class="top-picks-title">🎯 4 Migliori Selezioni per Expected Value</div>
+    <div class="pick-grid">
+      ${top.map((p,i)=>`<div class="pick-card">
+        <div class="pick-rank">#${i+1} MIGLIORE</div>
+        <div class="pick-name">${p.name}</div>
+        <div class="pick-ev">${p.ev>0?'+':''}${p.ev.toFixed(1)}% EV</div>
+        <div class="pick-prob">Prob ${(p.prob*100).toFixed(1)}% · Q ${p.bm.toFixed(2)}</div>
+      </div>`).join('')}
+    </div>`;
+}
+
+// ---- RANKING ----
+function renderRankingHTML(r){
+  const{gp,odds,home,away}=r; const items=[];
+  const add=(name,type,prob,bm)=>{ if(!prob||prob<=0||prob>=1)return; items.push({name,type,prob,fair:1/prob,bm:bm||null,ev:bm&&bm>1?evCalc(prob,bm)*100:null}); };
+  add(`1 — ${home}`,'1',gp.hw,odds.current1); add('X','X',gp.dr,odds.currentX); add(`2 — ${away}`,'2',gp.aw,odds.current2);
+  add('Over 1.5','OV',gp.o15,odds.over15); add('Under 1.5','UN',gp.u15,odds.under15);
+  add('Over 2.5','OV',gp.o25,odds.over25); add('Under 2.5','UN',gp.u25,odds.under25);
+  add('Over 3.5','OV',gp.o35,odds.over35); add('Under 3.5','UN',gp.u35,odds.under35);
+  add('GG','GG',gp.btts,odds.ggOdds); add('No GG','UN',gp.nobtts,odds.noggOdds);
+  items.sort((a,b)=>{ if(a.ev!==null&&b.ev!==null)return b.ev-a.ev; if(a.ev!==null)return-1; if(b.ev!==null)return 1; return Math.max(b.prob,1-b.prob)-Math.max(a.prob,1-a.prob); });
+  const tc={'1':'badge-1','X':'badge-x','2':'badge-2','OV':'badge-over','UN':'badge-under','GG':'badge-gg'};
+  const rc=['#f59e0b','#9ca3af','#a1887f'];
+  if(!items.length) return `<div class="card"><div style="color:var(--muted);padding:16px;font-size:13px">Incolla le quote bookmaker per la classifica EV.</div></div>`;
+  return `<div class="card" style="overflow-x:auto"><div class="card-title">🏆 Classifica per Expected Value</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr>${['#','Mercato','Tipo','Prob.','Affid.','Fair','BM','EV %',''].map(h=>`<th style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;background:var(--surface2)">${h}</th>`).join('')}</tr></thead>
+      <tbody>${items.map((item,i)=>{
+        const hEV=item.ev!==null,ec=hEV?(item.ev>0?'var(--green)':'var(--red)'):'var(--muted)';
+        const rel=reliability(item.prob);
+        return `<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:9px 8px;font-weight:700;font-size:18px;color:${rc[i]||'var(--muted)'}">${i+1}</td>
+          <td style="padding:9px 8px;font-weight:600;white-space:nowrap">${item.name}</td>
+          <td style="padding:9px 8px"><span class="badge ${tc[item.type]||''}">${item.type}</span></td>
+          <td style="padding:9px 8px;font-weight:700;font-size:15px">${(item.prob*100).toFixed(1)}%</td>
+          <td style="padding:9px 8px"><span class="badge ${rel.cls}">${rel.label}</span></td>
+          <td style="padding:9px 8px;font-family:'DM Mono',monospace;color:var(--muted)">${item.fair.toFixed(2)}</td>
+          <td style="padding:9px 8px">${item.bm?`<span style="font-weight:700;color:var(--gold)">${item.bm.toFixed(2)}</span>`:'—'}</td>
+          <td style="padding:9px 8px"><span style="font-weight:700;color:${ec}">${hEV?(item.ev>0?'+':'')+item.ev.toFixed(1)+'%':'—'}</span></td>
+          <td style="padding:9px 8px;min-width:70px">${hEV?`<div style="width:70px;height:5px;background:var(--border);border-radius:4px;overflow:hidden"><div style="width:${Math.min(Math.abs(item.ev)/20*100,100)}%;height:100%;background:${item.ev>0?'var(--green)':'var(--red)'}"></div></div><div style="font-size:9px;color:${ec};margin-top:2px">${item.ev>0?'✅ VALORE':'❌ NO'}</div>`:''}</td>
+        </tr>`;}).join('')}
+      </tbody>
+    </table></div>`;
+}
+
+// ---- GOALS ----
+function renderGoalsHTML(r){
+  const{gp,odds}=r;
+  const lines=[
+    {n:'Over/Under 0.5',o:gp.o05,u:gp.u05},
+    {n:'Over/Under 1.5',o:gp.o15,u:gp.u15,bo:odds.over15,bu:odds.under15},
+    {n:'Over/Under 2.5',o:gp.o25,u:gp.u25,bo:odds.over25,bu:odds.under25},
+    {n:'Over/Under 3.5',o:gp.o35,u:gp.u35,bo:odds.over35,bu:odds.under35},
+    {n:'Over/Under 4.5',o:gp.o45,u:gp.u45},
+    {n:'GG / No GG',o:gp.btts,u:gp.nobtts,bo:odds.ggOdds,bu:odds.noggOdds,ol:'GG',ul:'No GG'},
+  ];
+  return `<div class="card"><div class="card-title">⚽ Gol — Poisson + Dixon-Coles</div>${lines.map(l=>lineBlockHTML(l.n,l.o,l.u,l.bo,l.bu,l.ol,l.ul)).join('')}</div>`;
+}
+
+function lineBlockHTML(name,overP,underP,bmO,bmU,ol='Over',ul='Under'){
+  const evO=bmO&&bmO>1?evCalc(overP,bmO)*100:null, evU=bmU&&bmU>1?evCalc(underP,bmU)*100:null;
+  const relO=reliability(overP), relU=reliability(underP);
+  const sideHTML=(prob,bm,ev,label,isOver,rel)=>`
+    <div class="line-side ${isOver?'side-over':'side-under'}">
+      <div class="side-label ${isOver?'side-label-over':'side-label-under'}">${label}</div>
+      <div class="side-prob ${isOver?'side-prob-over':'side-prob-under'}">${(prob*100).toFixed(1)}%</div>
+      <div class="side-meta">Fair: ${(1/prob).toFixed(2)}${bm?` · BM: ${bm.toFixed(2)}`:''}</div>
+      ${ev!==null?`<div class="side-ev" style="color:${ev>0?'var(--green)':'var(--red)'}">${ev>0?'+':''}${ev.toFixed(1)}% EV</div>`:''}
+      <div style="margin-top:4px"><span class="badge ${rel.cls}">${rel.label} ${(Math.max(prob,1-prob)*100).toFixed(0)}%</span></div>
+    </div>`;
+  return `<div class="line-row"><div class="line-row-header">${name}</div><div class="line-sides">${sideHTML(overP,bmO,evO,ol,true,relO)}${sideHTML(underP,bmU,evU,ul,false,relU)}</div></div>`;
+}
+
+// ---- SHOTS ----
+function renderShotsHTML(r){
+  const{stats,xTiriTotal,xTiriHome,xTiriAway,xTiropTotal,xTiropHome,xTiropAway,lg,home,away}=r;
+  if(!xTiriTotal&&!xTiriHome&&!xTiriAway) return `<div class="card"><div style="color:var(--muted);padding:16px">Nessun dato tiri disponibile.</div></div>`;
+  let html=`<div class="card"><div class="card-title">🎯 Expected Shots (XTS) — Intensità offensiva · Permeabilità difensiva · Ritmo lega</div>`;
+  // Stat mini row
+  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:16px">`;
+  if(xTiriHome) html+=statMiniHTML(home,xTiriHome.toFixed(1),'var(--red)');
+  if(xTiriTotal) html+=statMiniHTML('λ Totale',xTiriTotal.toFixed(2),'var(--text)');
+  if(xTiriAway) html+=statMiniHTML(away,xTiriAway.toFixed(1),'var(--blue)');
+  html+=statMiniHTML('Media Lega',lg.tiri,'var(--muted)');
+  html+=`</div>`;
+  // Per-team sections then total
+  if(xTiriHome){ html+=squadSectionHTML(home,'var(--red)','TIRI TOTALI',xTiriHome,[18.5,20.5,22.5,24.5,26.5]); }
+  if(xTiriAway){ html+=squadSectionHTML(away,'var(--blue)','TIRI TOTALI',xTiriAway,[18.5,20.5,22.5,24.5,26.5]); }
+  if(xTiriTotal){ html+=squadSectionHTML('TOTALE PARTITA','var(--text)','TIRI TOTALI',xTiriTotal,[18.5,20.5,22.5,24.5,26.5,28.5,30.5]); }
+  if(xTiropTotal){
+    html+=`<hr style="border:none;border-top:1px solid var(--border);margin:14px 0">`;
+    html+=`<div class="card-title">TIRI IN PORTA</div>`;
+    if(xTiropHome) html+=squadSectionHTML(home,'var(--red)','TIRI PORTA',xTiropHome,[5.5,6.5,7.5,8.5]);
+    if(xTiropAway) html+=squadSectionHTML(away,'var(--blue)','TIRI PORTA',xTiropAway,[5.5,6.5,7.5,8.5]);
+    html+=squadSectionHTML('TOTALE PARTITA','var(--text)','TIRI PORTA',xTiropTotal,[5.5,6.5,7.5,8.5,9.5,10.5,11.5]);
+  }
+  html+=`</div>`;
+  return html;
+}
+
+// ---- CORNERS ----
+function renderCornersHTML(r){
+  const{stats,xCornerTotal,xCornerHome,xCornerAway,lg,home,away}=r;
+  if(!xCornerTotal&&!xCornerHome&&!xCornerAway) return `<div class="card"><div style="color:var(--muted);padding:16px">Nessun dato corner disponibile.</div></div>`;
+  let html=`<div class="card"><div class="card-title">🚩 Expected Corners (XC) — Pressione offensiva · Tendenza storica · Regressione 75/25</div>`;
+  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:16px">`;
+  if(xCornerHome) html+=statMiniHTML(home,xCornerHome.toFixed(2),'var(--red)');
+  if(xCornerTotal) html+=statMiniHTML('λ Totale',xCornerTotal.toFixed(2),'var(--text)');
+  if(xCornerAway) html+=statMiniHTML(away,xCornerAway.toFixed(2),'var(--blue)');
+  html+=statMiniHTML('Media Lega',lg.corner,'var(--muted)');
+  html+=`</div>`;
+  if(xCornerHome) html+=squadSectionHTML(home,'var(--red)','CORNER',xCornerHome,[3.5,4.5,5.5,6.5]);
+  if(xCornerAway) html+=squadSectionHTML(away,'var(--blue)','CORNER',xCornerAway,[3.5,4.5,5.5,6.5]);
+  if(xCornerTotal) html+=squadSectionHTML('TOTALE PARTITA','var(--text)','CORNER',xCornerTotal,[5.5,6.5,7.5,8.5,9.5,10.5,11.5,12.5,13.5]);
+  html+=`</div>`;
+  return html;
+}
+
+// ---- OFFSIDE ----
+function renderOffsideHTML(r){
+  const{stats,xFuoriTotal,xFuoriHome,xFuoriAway,lg,home,away}=r;
+  let html=`<div class="card"><div class="card-title">🏃 Fuorigioco — Stile offensivo · Linea difensiva</div>`;
+  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:16px">`;
+  if(xFuoriHome) html+=statMiniHTML(home,xFuoriHome,'var(--red)');
+  if(xFuoriTotal) html+=statMiniHTML('λ Totale',xFuoriTotal?.toFixed(2),'var(--text)');
+  if(xFuoriAway) html+=statMiniHTML(away,xFuoriAway,'var(--blue)');
+  html+=statMiniHTML('Media Lega',lg.fuori,'var(--muted)');
+  html+=`</div>`;
+  if(!stats.fuorigiocoTotal) html+=`<div style="color:var(--gold);font-size:12px;padding:8px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;margin-bottom:12px">ℹ️ Dato non trovato — uso media lega come baseline</div>`;
+  if(xFuoriHome) html+=squadSectionHTML(home,'var(--red)','FUORIGIOCO',xFuoriHome,[0.5,1.5,2.5,3.5]);
+  if(xFuoriAway) html+=squadSectionHTML(away,'var(--blue)','FUORIGIOCO',xFuoriAway,[0.5,1.5,2.5,3.5]);
+  if(xFuoriTotal) html+=squadSectionHTML('TOTALE PARTITA','var(--text)','FUORIGIOCO',xFuoriTotal,[0.5,1.5,2.5,3.5,4.5,5.5,6.5]);
+  html+=`</div>`;
+  return html;
+}
+
+// ---- REFEREE ----
+function renderRefereeHTML(r){
+  const{stats,ref,blend,lg}=r;
+  const{lF,lG,wF,wG,sf,baseF,baseG,idxAgg,idxProp,lgAgg,lgProp,rawF,rawG}=blend;
+  const wFp=Math.round(wF*100),wGp=Math.round(wG*100),wFS=100-wFp,wGS=100-wGp;
+  let html=`<div class="card"><div class="card-title">🟨 Falli e Cartellini — Stile di Gioco + Arbitro</div>`;
+  if(!ref) html+=`<div style="color:var(--gold);font-size:12px;margin-bottom:12px;padding:8px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px">ℹ️ Nessun dato arbitro — distribuzione basata su medie squadre + stile di gioco.</div>`;
+  if(ref?.name){
+    html+=`<div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="font-weight:700;font-size:17px;margin-bottom:2px">🟨 ${ref.name}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-family:'DM Mono',monospace">${ref.partite||'—'} partite analizzate</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:12px">
+        ${statMiniHTML('Med Falli',ref.medFalli?.toFixed(2))}
+        ${statMiniHTML('Med Gialli',ref.medGialli?.toFixed(2),'var(--gold)')}
+        ${ref.xFalli>0?statMiniHTML('1G ogni',ref.xFalli?.toFixed(1)+'f','var(--muted)'):''}
+        ${ref.medRossi>0?statMiniHTML('Med Rossi',ref.medRossi?.toFixed(2),'var(--red)'):''}
+      </div>
+      <div class="blend-box">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:.15em;margin-bottom:10px">⚗️ STILE DI GIOCO + ARBITRO</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          ${[{l:'AGGRESSIVITÀ',v:idxAgg,d:`${rawF>0&&stats.tiriTotal>0?(rawF/stats.tiriTotal).toFixed(3):'—'} vs ${lgAgg.toFixed(3)}`,up:'↑ più fallosa',dn:'↓ più pulita'},{l:'AMMONIZIONI',v:idxProp,d:`${rawG>0&&rawF>0?(rawG/rawF).toFixed(3):'—'} vs ${lgProp.toFixed(3)}`,up:'↑ più gialli',dn:'↓ meno gialli'}].map(({l,v,d,up,dn})=>{
+            const col=v>1.05?'var(--red)':v<0.95?'var(--green)':'var(--muted)';
+            return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px">
+              <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:3px">${l}</div>
+              <div style="font-size:9px;color:var(--muted);margin-bottom:5px">${d}</div>
+              <div style="font-size:20px;font-weight:700;color:${col}">${v.toFixed(2)}×</div>
+              <div style="font-size:10px;color:var(--muted)">${v>1.05?up:v<0.95?dn:'≈ norma'}</div>
+            </div>`;}).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          ${[{l:'FALLI λ',lam:lF,base:baseF,rv:ref?.medFalli,wp:wFp,ws:wFS,col:'var(--green)'},{l:'GIALLI λ',lam:lG,base:baseG,rv:ref?.medGialli,wp:wGp,ws:wGS,col:'var(--gold)'}].map(({l,lam,base,rv,wp,ws,col})=>`
+          <div>
+            <div style="font-size:10px;font-family:'DM Mono',monospace;color:${col};margin-bottom:3px">${l} = ${lam.toFixed(2)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Base ${base.toFixed(1)} (×${ws}%) · Arb ${rv?.toFixed(1)||'—'} (×${wp}%)</div>
+            <div class="blend-bar"><div style="width:${ws}%;background:var(--blue);opacity:.7"></div><div style="width:${wp}%;background:var(--gold);opacity:.9"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px"><span style="color:var(--blue)">Sq ${ws}%</span><span style="color:var(--gold)">Arb ${wp}%</span></div>
+          </div>`).join('')}
+        </div>
+        ${sf<1?`<div style="margin-top:8px;font-size:10px;color:var(--muted)">⚠️ ${ref?.partite} gare → peso arb ${Math.round(sf*100)}%</div>`:''}
+      </div>
+    </div>`;
+  }
+  // Falli poisson
+  if(lF>0){ html+=`<div style="margin-bottom:16px"><div style="font-size:14px;font-weight:700;margin-bottom:8px">🏃 Falli <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold)">λ=${lF.toFixed(2)}</span></div>${poissonTableHTML(lF,[18.5,20.5,22.5,24.5,26.5,28.5,30.5,32.5])}</div>`; }
+  if(lG>0){ html+=`<div style="margin-bottom:16px"><div style="font-size:14px;font-weight:700;margin-bottom:8px">🟨 Gialli <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold)">λ=${lG.toFixed(2)}</span></div>${poissonTableHTML(lG,[1.5,2.5,3.5,4.5,5.5,6.5,7.5],true)}</div>`; }
+  if(ref?.medRossi>0){ html+=`<div><div style="font-size:14px;font-weight:700;margin-bottom:8px">🟥 Rossi <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--red)">λ=${ref.medRossi.toFixed(2)}</span></div>${poissonTableHTML(ref.medRossi,[0.5])}</div>`; }
+  html+=`</div>`;
+  return html;
+}
+
+// ---- MATRIX ----
+function renderMatrixHTML(r){
+  const{lh,la,home,away}=r;
+  const{mat,tot}=buildMatrix(lh,la); let maxP=0;
+  for(let h=0;h<6;h++)for(let a=0;a<6;a++)if(mat[h][a]>maxP)maxP=mat[h][a];
+  let html=`<div class="card"><div class="card-title">🔢 Matrice Risultati Esatti</div><div class="matrix-wrap"><table class="matrix">`;
+  html+=`<thead><tr><th>${(home||'H').split(' ')[0].slice(0,4)}∖${(away||'A').split(' ')[0].slice(0,4)}</th>${[0,1,2,3,4,5].map(a=>`<th>${a}</th>`).join('')}</tr></thead><tbody>`;
+  for(let h=0;h<6;h++){
+    html+=`<tr><th>${h}</th>`;
+    for(let a=0;a<6;a++){
+      const p=mat[h][a]/tot,intens=Math.min(p/maxP*tot,1);
+      const bg=h>a?`rgba(0,200,83,${intens*.5})`:h===a?`rgba(14,165,233,${intens*.5})`:`rgba(229,57,53,${intens*.4})`;
+      html+=`<td style="background:${bg}"><div>${(p*100).toFixed(1)}%</div><div style="font-size:8px;color:var(--muted)">${(1/p).toFixed(0)}</div></td>`;
+    }
+    html+=`</tr>`;
+  }
+  html+=`</tbody></table></div></div>`;
+  return html;
+}
+
+// ---- STATS ----
+function renderStatsHTML(r){
+  const{stats,home,away}=r;
+  const rows=[['xG',stats.xgHome?.toFixed(2),stats.xgAway?.toFixed(2)],['Tiri Totali',stats.tiriHome,stats.tiriAway],['Tiri in Porta',stats.tiropHome,stats.tiropAway],['Corner',stats.cornerHome,stats.cornerAway],['Fuorigioco',stats.fuorigiocoHome,stats.fuorigiocoAway],['Falli',stats.falliHome,stats.falliAway],['Gialli',stats.gialliHome,stats.gialliAway],['Parate',stats.parateHome,stats.parateAway]].filter(([,h,a])=>h||a);
+  if(!rows.length) return `<div class="card"><div style="color:var(--muted);padding:16px">Nessuna statistica disponibile.</div></div>`;
+  return `<div class="card"><div class="card-title">📋 Statistiche Partita</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+      ${rows.map(([lbl,h,a])=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;text-transform:uppercase">${lbl}</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <span style="font-weight:700;font-size:22px;color:var(--red)">${h??'—'}</span>
+          <span style="font-size:10px;color:var(--muted)">vs</span>
+          <span style="font-weight:700;font-size:22px;color:var(--blue)">${a??'—'}</span>
+        </div>
+      </div>`).join('')}
+    </div></div>`;
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function statMiniHTML(label,val,color='var(--text)'){
+  return `<div class="stat-mini"><div class="stat-mini-label">${label}</div><div class="stat-mini-val" style="color:${color}">${val??'—'}</div></div>`;
+}
+
+function poissonTableHTML(lambda, thresholds, invertColors=false){
+  const rows=thresholds.map(t=>{
+    const op=1-poissonCDF(lambda,Math.floor(t)), up=1-op;
+    const fo=(1/Math.max(op,.001)).toFixed(2), fu=(1/Math.max(up,.001)).toFixed(2);
+    const rel=reliability(op);
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:7px 8px;font-family:'DM Mono',monospace;color:var(--muted);font-size:12px">${t}</td>
+      <td style="padding:7px 8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="pbar-wrap"><div class="pbar-fill-over" style="width:${Math.round(op*100)}%"></div></div>
+          <span style="font-weight:700;color:var(--green);font-size:14px">${(op*100).toFixed(0)}%</span>
+          <span style="font-size:11px;color:var(--muted)">(${fo})</span>
+          <span class="badge badge-over">OV</span>
+        </div>
+      </td>
+      <td style="padding:7px 8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="pbar-wrap"><div class="pbar-fill-under" style="width:${Math.round(up*100)}%"></div></div>
+          <span style="font-weight:700;color:var(--red);font-size:14px">${(up*100).toFixed(0)}%</span>
+          <span style="font-size:11px;color:var(--muted)">(${fu})</span>
+          <span class="badge badge-under">UN</span>
+        </div>
+      </td>
+      <td style="padding:7px 8px"><span class="badge ${rel.cls}">${rel.label} ${(Math.max(op,up)*100).toFixed(0)}%</span></td>
+    </tr>`;
+  }).join('');
+  return `<table class="ptable" style="width:100%"><thead><tr>
+    <th>Soglia</th><th style="color:var(--green)">OVER ↑</th><th style="color:var(--red)">UNDER ↓</th><th>Affid.</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function squadSectionHTML(name, color, stat, lambda, thresholds){
+  return `<div class="squad-section">
+    <div class="squad-header">
+      <div class="squad-dot" style="background:${color}"></div>
+      <span>${name}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto">${stat} · λ=${lambda.toFixed(2)}</span>
+    </div>
+    ${poissonTableHTML(lambda, thresholds)}
+  </div>`;
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function togglePanel(bodyId, toggleId){
+  const body=document.getElementById(bodyId), tog=document.getElementById(toggleId);
+  const open=body.style.display==='none'||!body.style.display;
+  body.style.display=open?'block':'none';
+  if(tog) tog.textContent=open?'▲ chiudi':'▼ apri';
+}
+function showView(view){
+  document.getElementById('view-input').style.display=view==='input'?'block':'none';
+  document.getElementById('view-results').style.display=view==='results'?'block':'none';
+  document.getElementById('back-btn').classList.toggle('visible',view==='results');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function goBack(){
+  showView('input');
+}
+function clearField(id){ document.getElementById(id).value=''; }
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+function loadSample(){
+  document.getElementById('league-select').value='serie_a'; onLeagueChange();
+  setTimeout(()=>{ document.getElementById('team-home').value='Milan'; document.getElementById('team-away').value='Como'; },50);
+  document.getElementById('odds-input').value='Q.Teoriche\n2.14\t3.43\t3.38\nCurrent Q.Reali\n2.4\t3.21\t3.28\nOver/Under1.5\n1.36\t3.75\nOver/Under2.5\n1.67\t2.20\nOver/Under3.5\n4.00\t1.25\nGol/No Goal\n1.91\t1.91';
+  document.getElementById('stats-input').value='AC Milan\t\tComo\nTiri Totali\n12.86\t24.78\t11.92\nTiri in porta\n4.38\t8.25\t3.87\nCorner\n4.59\t8.6\t4.01\nFuorigioco\n2.05\t3\t0.95\nFalli\n10.67\t23.82\t13.15\nCartellini Gialli\n1.88\t4.14\t2.26';
+  document.getElementById('referee-input').value='Arbitro: Maurizio Mariani, Italy\n14\t23.43\t4.14\t5.66\t0.14';
+}
+
+// ============================================================
+// REFEREES ARCHIVE PANEL (in input view)
+// ============================================================
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Add referees panel after analyses panel
+  const panel=document.createElement('div');
+  panel.className='panel'; panel.id='referees-panel';
+  panel.innerHTML=`
+    <div class="panel-header" onclick="togglePanel('referees-body','referees-toggle')">
+      <span style="font-size:20px">🟨</span>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px">Archivio Arbitri</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:1px">Salvati automaticamente ad ogni analisi</div>
+      </div>
+      <span class="panel-toggle" id="referees-toggle">▼ apri</span>
+    </div>
+    <div id="referees-body" style="display:none;margin-top:14px">
+      <div id="referees-archive"><div style="color:var(--muted);font-size:12px">Nessun arbitro salvato.</div></div>
+    </div>`;
+  document.getElementById('analyses-panel').after(panel);
+  init();
+  renderRefereesArchive();
+});
+</script>
+
+<!-- SERVICE WORKER REGISTRATION -->
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+</body>
+</html>
